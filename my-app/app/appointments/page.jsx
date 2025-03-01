@@ -34,18 +34,23 @@ function Appointments() {
           onChange={(e) => setName(e.target.value)}
           required
         />
-        <div>
+        <div className="relative">
           <input
             type="text"
             placeholder="Select a date"
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white cursor-pointer"
             value={selectedDate ? selectedDate.toDateString() : ""}
-            onClick={() => setShowCalendar(true)}
+            onClick={() => setShowCalendar(!showCalendar)}
             readOnly
           />
           {showCalendar && (
-            <div className="absolute mt-2 bg-gray-800 shadow-lg p-2 rounded">
-              <Calendar onChange={handleDateChange} value={selectedDate} className="text-white" />
+            <div className="absolute z-50 mt-2 bg-gray-800 shadow-lg p-2 rounded">
+              <Calendar
+                onChange={handleDateChange}
+                value={selectedDate}
+                className="text-black"
+                tileClassName="text-black"
+              />
             </div>
           )}
         </div>
