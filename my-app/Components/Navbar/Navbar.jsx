@@ -2,19 +2,25 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 
 const Navbar = () => {
-  const [activeLink, setActiveLink] = useState("#home");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeLink, setActiveLink] = useState("");
+  const pathname = usePathname(); // Get current path
+  const router = useRouter(); // Navigation router
 
   const handleSetActive = (link) => {
     setActiveLink(link);
-    setIsMobileMenuOpen(false);
 
-    // Scroll to the section smoothly
-    const section = document.getElementById(link.substring(1)); // Remove #
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (pathname === "/") {
+      // If already on home, scroll smoothly
+      const section = document.getElementById(link.substring(1)); // Remove #
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      // If on another page, navigate to home first
+      router.push(`/${link}`);
     }
   };
 
@@ -35,7 +41,7 @@ const Navbar = () => {
                   key={link}
                   onClick={() => handleSetActive(link)}
                   className={`px-3 pt-1 text-sm font-medium ${
-                    activeLink === link
+                    activeLink === link && pathname === "/"
                       ? "text-teal-600 border-b-2 border-teal-600"
                       : "text-gray-700 hover:text-teal-600 hover:border-b-2 hover:border-teal-600"
                   }`}
