@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "@/Components/Navbar/Navbar";
-import Sidebar from "@/Components/Sidebar/Sidebar";
+import RootLayoutClient from "@/Components/RootLayoutClient"; // Move UI logic to a new file
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,22 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Navbar - Fixed at the top */}
-        <div className="fixed top-0 left-0 w-full z-50">
-          <Navbar />
-        </div>
-
-        <div className="flex">
-          {/* Sidebar - Fixed on the left */}
-          <div className="fixed top-16 left-0 w-64 h-full bg-gray-100 shadow-md">
-            <Sidebar />
-          </div>
-
-          {/* Main Content - Adjust margin for sidebar */}
-          <div className="flex-1 ml-64 pt-16">
-            {children}
-          </div>
-        </div>
+        <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>
   );
