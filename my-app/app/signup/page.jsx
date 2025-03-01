@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 function SignUp() {
   const [name, setName] = useState("");
@@ -8,15 +9,12 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter(); // Use Next.js router for redirection
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    console.log(name);
-    console.log(email);
-    console.log(password);
-    
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/register", {
@@ -31,10 +29,13 @@ function SignUp() {
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
       setSuccess("User registered successfully!");
-      console.log("Success:", data);
+
+      // Redirect to Sign In page after 2 seconds
+      setTimeout(() => {
+        router.push("/signin");
+      }, 2000);
     } catch (error) {
       setError(error.message);
-      console.error("Error:", error.message);
     }
   };
 

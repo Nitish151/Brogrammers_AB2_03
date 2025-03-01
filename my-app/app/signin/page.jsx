@@ -9,9 +9,7 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Reset error before making a request\
-    console.log(email)
-    console.log(password)
+    setError(""); // Reset error before making a request
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
@@ -30,11 +28,11 @@ function SignIn() {
 
       console.log("Login successful, Token:", data.token);
 
-      // Store token in localStorage or context if needed
+      // Store token in localStorage
       localStorage.setItem("token", data.token);
 
-      // Redirect to dashboard or home page (update as per your app)
-      window.location.href = "/dashboard";
+      // Redirect to home page
+      window.location.href = "/";
     } catch (error) {
       setError(error.message);
     }
