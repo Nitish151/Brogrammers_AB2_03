@@ -1,14 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 const Navbar = () => {
-  const [activeLink, setActiveLink] = useState("");
+  const [activeLink, setActiveLink] = useState("#home");
   const pathname = usePathname(); // Get current path
   const router = useRouter(); // Navigation router
+
+  useEffect(() => {
+    // Ensure Home is highlighted when on the default page
+    if (pathname === "/") {
+      setActiveLink("#home");
+    }
+  }, [pathname]);
 
   const handleSetActive = (link) => {
     setActiveLink(link);
@@ -41,18 +48,19 @@ const Navbar = () => {
                 <button
                   key={link}
                   onClick={() => handleSetActive(link)}
-                  className={`px-3 pt-1 text-sm font-medium ${activeLink === link && pathname === "/"
+                  className={`px-3 pt-1 text-sm font-medium ${
+                    (activeLink === link && pathname === "/") || (pathname === "/" && link === "#home")
                       ? "text-teal-400 border-b-2 border-teal-400"
                       : "text-gray-300 hover:text-teal-400 hover:border-b-2 hover:border-teal-400"
-                    }`}
+                  }`}
                 >
                   {link === "#home"
                     ? "Home"
                     : link === "#about"
-                      ? "About Us"
-                      : link === "#contact"
-                        ? "Contact Us"
-                        : "Profile"}
+                    ? "About Us"
+                    : link === "#contact"
+                    ? "Contact Us"
+                    : "Profile"}
                 </button>
               ))}
             </div>

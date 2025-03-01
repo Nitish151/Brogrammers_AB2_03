@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, MessageSquare, Home } from "lucide-react";
+import { Calendar, MessageSquare, Home , History} from "lucide-react";
 
 const Sidebar = () => {
   const pathname = usePathname(); // Get current route
@@ -35,6 +35,19 @@ const Sidebar = () => {
             >
               <Calendar className="w-5 h-5 mr-3" />
               <span>Book Appointment</span>
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href="/history"
+              className={`flex items-center px-4 py-3 rounded-lg transition-colors ${pathname === "/history"
+                ? "bg-gradient-to-r from-teal-600 to-teal-800 text-white font-semibold"
+                : "text-gray-300 hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-800 hover:text-white"
+                }`}
+            >
+              <History className="w-5 h-5 mr-3" />
+              <span>History</span>
             </Link>
           </li>
         </ul>
