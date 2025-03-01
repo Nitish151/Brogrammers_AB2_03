@@ -1,12 +1,9 @@
-import Appointment from '@/Components/Appointment/Appointment'
 import React from 'react'
 
 function page() {
-    return (
-        <div>
-            <Appointment />
-        </div>
-    )
+  return (
+    <div>page</div>
+  )
 }
 
 export default page
