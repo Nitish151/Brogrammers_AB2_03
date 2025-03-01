@@ -5,16 +5,46 @@ import React, { useState } from "react";
 function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password });
+    setError(""); // Reset error before making a request
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      console.log("Login successful, Token:", data.token);
+
+      // Store token in localStorage or context if needed
+      localStorage.setItem("token", data.token);
+
+      // Redirect to dashboard or home page (update as per your app)
+      window.location.href = "/dashboard";
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-white">
       <div className="bg-gray-600 p-8 rounded-lg shadow-2xl w-96">
         <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
+
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
           <div>
