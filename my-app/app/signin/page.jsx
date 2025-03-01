@@ -9,7 +9,9 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Reset error before making a request
+    setError(""); // Reset error before making a request\
+    console.log(email)
+    console.log(password)
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {

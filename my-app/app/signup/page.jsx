@@ -13,6 +13,10 @@ function SignUp() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    console.log(name);
+    console.log(email);
+    console.log(password);
+    
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/register", {
