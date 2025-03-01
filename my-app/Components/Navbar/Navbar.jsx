@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,13 +26,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md fixed top-0 w-full z-50">
+    <nav className="bg-gradient-to-r from-gray-800 via-gray-900 to-black shadow-md fixed top-0 w-full z-50 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image src="/logo.png" alt="Health Hub Logo" width={60} height={60} className="mr-2" />
-              <span className="text-xl font-semibold text-teal-600">Health Hub</span>
+              <span className="text-xl font-semibold text-teal-400">Health Hub</span>
             </Link>
           </div>
           <div className="flex items-center">
@@ -40,19 +41,18 @@ const Navbar = () => {
                 <button
                   key={link}
                   onClick={() => handleSetActive(link)}
-                  className={`px-3 pt-1 text-sm font-medium ${
-                    activeLink === link && pathname === "/"
-                      ? "text-teal-600 border-b-2 border-teal-600"
-                      : "text-gray-700 hover:text-teal-600 hover:border-b-2 hover:border-teal-600"
-                  }`}
+                  className={`px-3 pt-1 text-sm font-medium ${activeLink === link && pathname === "/"
+                      ? "text-teal-400 border-b-2 border-teal-400"
+                      : "text-gray-300 hover:text-teal-400 hover:border-b-2 hover:border-teal-400"
+                    }`}
                 >
                   {link === "#home"
                     ? "Home"
                     : link === "#about"
-                    ? "About Us"
-                    : link === "#contact"
-                    ? "Contact Us"
-                    : "Profile"}
+                      ? "About Us"
+                      : link === "#contact"
+                        ? "Contact Us"
+                        : "Profile"}
                 </button>
               ))}
             </div>
