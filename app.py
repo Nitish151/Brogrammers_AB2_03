@@ -1,153 +1,72 @@
-from flask import Flask, request, render_template
-from langchain_community.document_loaders import PubMedLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.chains import RetrievalQA
-from langchain_openai import OpenAI
-from langchain.prompts import PromptTemplate
 import os
+from flask import Flask, request, render_template, jsonify
+from dotenv import load_dotenv
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain.schema import Document
+from langchain_mistralai import ChatMistralAI
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain_community.retrievers import BM25Retriever
+from langchain_text_splitters import CharacterTextSplitter
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+import json
+from typing import List, Dict, Any, Optional, Union
+import re
+from tqdm import tqdm
+import logging
+import hashlib
+from medical3 import MedicalDataProcessor, MedicalVectorStore, MedicalEntityExtractor, ClinicalDecisionSupportSystem
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+PUBMED_API_KEY = os.getenv("PUBMED_API_KEY")  # Optional for higher rate limits
 
 # Initialize Flask app
 app = Flask(__name__)
 
-# Set OpenAI API key using your actual token
-os.environ["OPENAI_API_KEY"] = "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"
-
-# =====================================
-# 1. Load PubMed Data & Create Vector DB
-# =====================================
-
-def create_vector_db():
-    # Fetch PubMed articles using your base query
-    query = "diabetes treatment"
-    loader = PubMedLoader(query=query)
-    documents = loader.load()
-
-    # Update each document's metadata with a title if not already present
-    for doc in documents:
-        if not doc.metadata.get("title"):
-            # Extract the title from the first line of the page content, if possible
-            lines = doc.page_content.strip().split("\n")
-            if lines:
-                doc.metadata["title"] = lines[0].strip()
-            else:
-                doc.metadata["title"] = "No Title"
-
-    # Split documents into chunks
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
-        separators=["\n\n", "\n", ". ", " ", ""]
-    )
-    split_docs = text_splitter.split_documents(documents)
-
-    # Create embeddings and store in Chroma DB
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-    vector_db = Chroma.from_documents(
-        documents=split_docs,
-        embedding=embeddings,
-        persist_directory="./chroma_db_data",
-        collection_name="pubmed_articles",
-    )
-    vector_db.persist()
-    return vector_db
-
-# =====================================
-# 2. Initialize RAG Pipeline Components
-# =====================================
-
-# Initialize the embedding model
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-# Load the pre-existing Chroma DB
-vector_db = Chroma(
-    persist_directory="./chroma_db_data",
-    embedding_function=embeddings,
-    collection_name="pubmed_articles",
-)
-
-# Configure the retriever using Maximal Marginal Relevance
-retriever = vector_db.as_retriever(
-    search_type="mmr",
-    search_kwargs={"k": 5, "fetch_k": 20}
-)
-
-# Custom prompt template for generating answers
-prompt_template = """Use the following medical research excerpts to answer the question.
-If you don't know the answer, say you don't know. Keep answers technical but clear.
-
-Context:
-{context}
-
-Question: {question}
-Answer:"""
-
-PROMPT = PromptTemplate(
-    template=prompt_template,
-    input_variables=["context", "question"]
-)
-
-llm = OpenAI(
-    model_name="gpt-3.5-turbo-instruct",  # You can also use "gpt-4"
-    temperature=0.2
-)
-
-# =====================================
-# 3. Create RetrievalQA Chain
-# =====================================
-
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=retriever,
-    return_source_documents=True,
-    chain_type_kwargs={"prompt": PROMPT}
-)
-
-# =====================================
-# 4. Query Interface
-# =====================================
-
-def ask_question(question):
-    result = qa_chain.invoke({"query": question})
-
-    # Format answer with sources (display only valid URLs)
-    answer = result["result"]
-    sources = []
-
-    for doc in result["source_documents"]:
-        url = doc.metadata.get("url")
-        if url and url.startswith("http"):  # Only include valid URLs
-            sources.append(url)
-
-    # If no valid URLs are found, display a message
-    sources_text = "\n".join(sources) if sources else "No direct URLs available."
-
-    return f"Answer: {answer}\n\nSources:\n{sources_text}"
-
-# =====================================
-# 5. Flask Routes
-# =====================================
-
+# Initialize the Clinical Decision Support System
+cdss = ClinicalDecisionSupportSystem()
 @app.route("/", methods=["GET", "POST"])
-def home():
+def index():
     if request.method == "POST":
-        question = request.form.get("question")
-        response = ask_question(question)
-        return render_template("index.html", response=response)
-    return render_template("index.html", response=None)
+        # Get input from the form
+        patient_ehr = request.form.get("patient_ehr")
+        clinical_question = request.form.get("clinical_question")
 
-# =====================================
-# 6. Run Flask App
-# =====================================
+        # Log the input
+        logger.info(f"Received patient EHR: {patient_ehr}")
+        logger.info(f"Received clinical question: {clinical_question}")
+
+        # Initialize the system with patient EHR
+        logger.info("Initializing system with patient EHR...")
+        if not cdss.initialize_with_patient_ehr(patient_ehr=patient_ehr):
+            logger.error("Failed to initialize the system with patient EHR.")
+            return render_template("index.html", error="Failed to initialize the system with patient EHR.")
+
+        # Get recommendation
+        logger.info("Generating clinical recommendation...")
+        recommendation = cdss.get_clinical_recommendation(clinical_question)
+
+        # Log the recommendation
+        logger.info(f"Generated recommendation: {recommendation}")
+
+        # Render the result in the HTML template
+        return render_template("index.html", recommendation=recommendation, patient_ehr=patient_ehr, clinical_question=clinical_question)
+
+    # Render the form for GET requests
+    return render_template("index.html")
 
 if __name__ == "__main__":
-    # Create vector DB if it doesn't already exist
-    if not os.path.exists("./chroma_db_data"):
-        print("Creating vector database...")
-        create_vector_db()
-
-    # Run the Flask app
     app.run(debug=True)
