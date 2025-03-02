@@ -21,7 +21,7 @@ const Sidebar = () => {
                 }`}
             >
               <MessageSquare className="w-5 h-5 mr-3" />
-              <span>Chatbot</span>
+              <span>Consultation Assistant</span>
             </Link>
           </li>
 

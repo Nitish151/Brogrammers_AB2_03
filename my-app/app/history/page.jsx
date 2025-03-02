@@ -9,7 +9,7 @@ const History = () => {
     useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/patients");
+                const response = await fetch("http://localhost:3001/api/patients");
                 const data = await response.json();
                 if (data.success) {
                     setPatients(data.patients);
