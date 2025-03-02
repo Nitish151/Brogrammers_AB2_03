@@ -3,66 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Question Answering System</title>
+    <title>Clinical Decision Support System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            padding: 0;
-            background-color: #f4f4f9;
         }
-        h1 {
-            color: #333;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
-        form {
-            margin-bottom: 20px;
+        textarea, input[type="file"] {
+            width: 100%;
+            margin-bottom: 10px;
         }
-        input[type="text"] {
-            width: 300px;
+        textarea {
+            height: 150px;
+        }
+        .recommendation {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .debug-info {
+            margin-top: 20px;
             padding: 10px;
-            font-size: 16px;
+            background-color: #ffe6e6;
+            border: 1px solid #ffcccc;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
         }
-        input[type="submit"] {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
+        .submit-btn {
+            padding: 10px 15px;
+            background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .response pre {
-            padding: 10px;
-            background-color: #eef;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
-    <h1>Medical Question Answering System</h1>
-    <form action="/" method="POST">
-        <label for="question">Ask a medical question:</label><br><br>
-        <input type="text" id="question" name="question" placeholder="e.g., What is diabetes?" required>
-        <input type="submit" value="Submit">
-    </form>
-    
-    {% if response %}
-    <div class="response">
-        <h2>Response:</h2>
-        <pre>{{ response }}</pre>
+    <div class="container">
+        <h1>Clinical Decision Support System</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <label for="clinical_question">Clinical Question:</label><br>
+            <textarea id="clinical_question" name="clinical_question" required>{{ request.form.clinical_question }}</textarea><br>
+            
+            <label for="patient_ehr">Patient EHR:</label><br>
+            <textarea id="patient_ehr" name="patient_ehr" required>{{ request.form.patient_ehr }}</textarea><br>
+            
+            <button type="submit" class="submit-btn">Get Recommendation</button>
+        </form>
+
+        {% if recommendation %}
+        <div class="recommendation">
+            <h2>Recommendation:</h2>
+            <p>{{ recommendation }}</p>
+        </div>
+        {% endif %}
+        
+        {% if raw_response %}
+        <div class="debug-info">
+            <h3>Debug Information</h3>
+            <p>Raw Model Response (truncated):</p>
+            <pre>{{ raw_response }}</pre>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </body>
 </html>
