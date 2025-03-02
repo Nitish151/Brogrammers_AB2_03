@@ -27,10 +27,26 @@ const History = () => {
         patient.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Function to copy patient data
+    const copyDataToClipboard = () => {
+        if (filteredPatients.length === 0) {
+            alert("No patient data to copy!");
+            return;
+        }
+
+        const dataString = filteredPatients.map(patient =>
+            `Patient: ${patient.name}, Age: ${patient.age}, Gender: ${patient.gender}, Condition: ${patient.medicalCondition}, Doctor: ${patient.doctorName}, Hospital: ${patient.hospitalName}`
+        ).join("\n");
+
+        navigator.clipboard.writeText(dataString)
+            .then(() => alert("Patient data copied!"))
+            .catch(err => console.error("Failed to copy:", err));
+    };
+
     return (
         <div className="min-h-screen bg-black text-white p-6">
             <h2 className="text-3xl font-bold mb-4">Patient History</h2>
-            
+
             {/* Search Bar */}
             <input
                 type="text"
@@ -41,7 +57,7 @@ const History = () => {
             />
 
             {/* Patient Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto relative">
                 <table className="min-w-full border border-gray-600">
                     <thead>
                         <tr className="bg-gray-900">
@@ -74,6 +90,16 @@ const History = () => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Copy Button */}
+            <div className="flex justify-end mt-4">
+                <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                    onClick={copyDataToClipboard}
+                >
+                    Copy Data
+                </button>
             </div>
         </div>
     );
